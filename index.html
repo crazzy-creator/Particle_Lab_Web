@@ -59,7 +59,7 @@
   html.fs-bar #btnWeather{ top:var(--wx-top,calc(40px + var(--bar-pad,0px))); }
   html.fs-bar #hud{ top:calc(4px + var(--bar-pad,0px)); }
   html.fs-bar #hudTip{ top:var(--tip-top,calc(78px + var(--bar-pad,0px))); }
-  html.fs-bar #btnEditPanel{ top:calc(48px + var(--bar-pad,0px)); }
+  html.fs-bar #btnEditPanel{ top:calc(var(--btn-d,42px) + 14px + var(--bar-pad,0px)); }
   #xhair{ position:absolute; width:22px; height:22px; margin:-11px 0 0 -11px; display:none; pointer-events:none; z-index:6; }
   #xhair::before,#xhair::after{ content:""; position:absolute; background:#fff; box-shadow:0 0 0 1px #000a; }
   #xhair::before{ left:10px; top:0; width:2px; height:22px; } #xhair::after{ top:10px; left:0; height:2px; width:22px; }
@@ -76,7 +76,7 @@
   .hud-btn.active{ border-color:var(--ring); box-shadow:0 0 0 2px #8bfb2b33; }      /* aktive Werkzeuge: gruener Rand statt blauer Fuellung (Julian 7. Okt.) */
   
   #btnEditPanel{
-    display:none; position:absolute; top:48px; left:10px;
+    display:none; position:absolute; top:calc(var(--btn-d,42px) + 14px); left:10px;
     background:#1f2430cc; border:1px solid var(--panel-border);
     color:var(--accent); font-size:11px; font-weight:bold;
     padding:4px 8px; border-radius:8px; cursor:pointer; z-index:5;
@@ -115,7 +115,7 @@
   .grid-item.marked{ outline:2px solid var(--accent); background:#243a4a; }
   .ok-btn{ margin-top:10px; width:100%; padding:12px; border-radius:10px; border:1px solid var(--panel-border); background:var(--accent); color:#0a1116; font-size:16px; font-weight:bold; cursor:pointer; }
 
-  .icon-btn, .hud-btn, #btnSettings, #activeMatDisplay .swatch, .menu-item .mi, .grid-item .dot, .grid-item span, .modal-close{
+  .icon-btn, .hud-btn, #activeMatDisplay .swatch, .menu-item .mi, .grid-item .dot, .grid-item span, .modal-close{
     transform:rotate(var(--ui-rot, 0deg)); transition:transform .25s ease;
   }
   .grid-item span{ display:block; }      /* Beschriftung der Elementauswahl dreht mit dem Geraet (Hochformat, Fenster gesperrt) */
@@ -145,15 +145,16 @@
   #setPane{ display:none; flex-direction:column; gap:4px; margin-top:4px; }
   .set-hint{ font-size:11px; color:var(--text-dim); padding:4px 2px 8px; line-height:1.4; }
 
-  #menuWrap{ position:relative; flex:0 0 auto; }
+  #menuWrap{ position:absolute; top:6px; left:10px; z-index:6; }      /* Hammer-Menue (Julian 7. Okt.): oben links im Spielfeld, Editor-Knopf darunter */
+  html.fs-bar #menuWrap{ top:calc(6px + var(--bar-pad,0px)); }
   #menuPop{
-    display:none; position:absolute; right:0; bottom:calc(100% + 8px); z-index:50;
+    display:none; position:absolute; left:0; top:calc(100% + 8px); z-index:50;
     gap:6px; min-width:270px; padding:8px;
     background:var(--panel); border:1px solid var(--panel-border); border-radius:14px;
     box-shadow:0 6px 24px rgba(0,0,0,0.5);
   }
-  #menuPop.open{ display:grid; grid-template-columns:repeat(3,minmax(84px,1fr)); transform-origin:bottom right; animation:menuUp .22s ease-out; max-height:calc(100vh - 80px); max-height:calc(100dvh - 80px); overflow-y:auto; }
-  @keyframes menuUp{ from{ opacity:0; transform:translateY(24px) scale(0.35); } to{ opacity:1; transform:none; } }
+  #menuPop.open{ display:grid; grid-template-columns:repeat(3,minmax(84px,1fr)); transform-origin:top left; animation:menuUp .22s ease-out; max-height:calc(100vh - 140px); max-height:calc(100dvh - 140px); overflow-y:auto; }
+  @keyframes menuUp{ from{ opacity:0; transform:translateY(-24px) scale(0.35); } to{ opacity:1; transform:none; } }
   .menu-item{
     background:#1f2430; border:1px solid var(--panel-border); color:var(--text);
     border-radius:10px; padding:10px 12px; font-size:14px; text-align:left; cursor:pointer;
@@ -280,13 +281,10 @@
   html.bar-left #toolbar{ border-right:1px solid var(--panel-border); } html.bar-right #toolbar{ border-left:1px solid var(--panel-border); }
   html.bar-left #controlsRow, html.bar-right #controlsRow{ flex-direction:column; max-width:none; height:100%; justify-content:space-around; align-items:center; gap:4px; }
   html.bar-left #canvasWrap, html.bar-right #canvasWrap{ width:auto; height:100%; }
-  html.bar-right #menuPop{ right:calc(100% + 8px); bottom:0; } html.bar-left #menuPop{ left:calc(100% + 8px); right:auto; bottom:0; }
+  
   html.bar-left #activeMatDisplay, html.bar-right #activeMatDisplay{ flex-direction:column; max-width:64px; height:auto; padding:6px 3px; border-radius:14px; }
 
-  /* Werkzeugkasten (21z-xkit): Einstellungen oben links ueber dem Editor-Knopf, Reiterleiste Element | Pinsel | Radierer in den drei Fenstern */
-  #btnSettings{ position:absolute; top:6px; left:10px; width:34px; height:34px; border-radius:50%; background:#1f2430cc; border:1px solid var(--panel-border); color:var(--text); font-size:18px; cursor:pointer; z-index:5; display:flex; align-items:center; justify-content:center; padding:0; backdrop-filter:blur(4px); }
-  #btnSettings:active{ background:var(--accent); color:#000; }
-  html.fs-bar #btnSettings{ top:calc(6px + var(--bar-pad,0px)); }
+  /* Werkzeugkasten (21z-xkit): Reiterleiste Element | Pinsel | Radierer in den drei Fenstern */
   #btnBrushModal{ display:none !important; }      /* der Pinsel wird ueber den Reiter im Werkzeugkasten-Fenster geoeffnet */
   .kit-tabs{ display:flex; gap:6px; }
   .kit-tabs button{ flex:1 1 0; min-width:0; padding:9px 4px; border-radius:10px; border:1px solid var(--panel-border); background:#1f2430; color:var(--text-dim); font-size:13px; font-weight:bold; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -328,7 +326,18 @@ window.addEventListener('error',function(e){ try{ var sp=document.getElementById
 </div>
 <div id="app">
   <div id="canvasWrap">
-    <button id="btnSettings" title="Einstellungen">⚙️</button>
+    <div id="menuWrap">
+        <button class="icon-btn" id="btnMenu" title="Menü">🛠️</button>
+        <div id="menuPop">
+          <button class="menu-item" id="btnSettings" title="Einstellungen"><span class="mi">⚙️</span> Einstellungen</button>
+          <button class="menu-item" id="btnWorld" title="Welt speichern und laden"><span class="mi">💾</span> Welt speichern/laden</button>
+          <button class="menu-item" id="btnUndo" title="Letzten Strich rückgängig"><span class="mi">↩️</span> Rückgängig: <b id="menuUndo">0</b></button>
+          <button class="menu-item" id="btnStep" title="Einzelschritt (pausiert)"><span class="mi">⏭</span> Einzelschritt</button>
+          <button class="menu-item" id="btnSpeed" title="Tempo der Simulation"><span class="mi">🕐</span> Tempo: <b id="menuSpeed">1×</b></button>
+          <button class="menu-item" id="btnTip" title="Info-Lupe: Fadenkreuz mit Lupe zeigt das Element (Malen ist dabei aus)"><span class="mi">🔍</span> Info-Lupe: <b id="menuTip">Aus</b></button>
+          <button class="menu-item" id="btnInflowModal" title="Quell-Rate"><span class="mi">🚰</span> Quell-Rate: <b id="menuRate">30</b></button>
+        </div>
+      </div>
     <button id="btnEditPanel">✏️ Editor</button>
     <canvas id="view"></canvas>
     <div id="hud">
@@ -357,17 +366,7 @@ window.addEventListener('error',function(e){ try{ var sp=document.getElementById
 
       <button class="icon-btn" id="btnBrushModal" title="Pinselgröße">🖌️</button>
       <button class="icon-btn" id="btnPause" title="Pause">⏸</button>
-      <div id="menuWrap">
-        <button class="icon-btn" id="btnMenu" title="Werkzeugkasten">🛠️</button>
-        <div id="menuPop">
-          <button class="menu-item" id="btnWorld" title="Welt speichern und laden"><span class="mi">💾</span> Welt speichern/laden</button>
-          <button class="menu-item" id="btnUndo" title="Letzten Strich rückgängig"><span class="mi">↩️</span> Rückgängig: <b id="menuUndo">0</b></button>
-          <button class="menu-item" id="btnStep" title="Einzelschritt (pausiert)"><span class="mi">⏭</span> Einzelschritt</button>
-          <button class="menu-item" id="btnSpeed" title="Tempo der Simulation"><span class="mi">🕐</span> Tempo: <b id="menuSpeed">1×</b></button>
-          <button class="menu-item" id="btnTip" title="Info-Lupe: Fadenkreuz mit Lupe zeigt das Element (Malen ist dabei aus)"><span class="mi">🔍</span> Info-Lupe: <b id="menuTip">Aus</b></button>
-          <button class="menu-item" id="btnInflowModal" title="Quell-Rate"><span class="mi">🚰</span> Quell-Rate: <b id="menuRate">30</b></button>
-        </div>
-      </div>
+      <button class="icon-btn" id="btnKit" title="Werkzeugkasten (Element, Pinsel, Radierer)">🧰</button>
     </div>
   </div>
 </div>
@@ -6467,21 +6466,21 @@ de.style.setProperty('--wx-top',wxTop+'px'); de.style.setProperty('--tip-top',ti
 try{ if(typeof ResizeObserver!=='undefined'){ const h=document.getElementById('hud'), w=document.getElementById('btnWeather'); const ro=new ResizeObserver(()=>uiLayoutHud()); if(h) ro.observe(h); if(w) ro.observe(w); } window.addEventListener('resize',()=>uiLayoutHud()); setTimeout(uiLayoutHud,300); }catch(e){}
 function uiSetSize(key,v){ uiSize[key]=v; setPut(key==='d'?'uiD':key==='ico'?'uiIco':'uiHud',v); uiApply(); }
 function uiSetHide(id,hide){ if(hide) uiHide[id]=1; else delete uiHide[id]; setPut('uiHide',uiHide); uiApply(); }
-const UI_MENU_IDS=['btnWorld','btnUndo','btnStep','btnSpeed','btnTip','btnInflowModal'];
-const UI_BAR=[['btnClear','🗑 Mülleimer'],['btnPause','⏸ Pause'],['activeMatDisplay','Elementanzeige'],['btnEraser','⌫ Radiergummi'],['menuWrap','🛠️ Werkzeugkasten']];
+const UI_MENU_IDS=['btnSettings','btnWorld','btnUndo','btnStep','btnSpeed','btnTip','btnInflowModal'];
+const UI_BAR=[['btnClear','🗑 Mülleimer'],['btnPause','⏸ Pause'],['activeMatDisplay','Elementanzeige'],['btnEraser','⌫ Radiergummi'],['btnKit','🧰 Werkzeugkasten']];
 const UI_BAR_IDS=UI_BAR.map(b=>b[0]);
 function uiSanitize(a,all){ const o=Array.isArray(a)?a.filter(x=>all.indexOf(x)>=0):[]; for(const x of all) if(o.indexOf(x)<0) o.push(x); return o; }
-let uiMenuOrder=uiSanitize(PLAB_SET.uiMenuOrder,UI_MENU_IDS), uiBarOrder=uiSanitize(PLAB_SET.uiBarOrder2,UI_BAR_IDS);
+let uiMenuOrder=uiSanitize(PLAB_SET.uiMenuOrder,UI_MENU_IDS), uiBarOrder=uiSanitize(PLAB_SET.uiBarOrder3,UI_BAR_IDS);
 function uiApplyOrder(){
 const pop=document.getElementById('menuPop'); if(pop && pop.appendChild) for(const id of uiMenuOrder){ const el=document.getElementById(id); if(el) pop.appendChild(el); }
 uiBarOrder.forEach((id,i)=>{ const el=document.getElementById(id); if(el && el.style) el.style.order=String(i); });
 }
 function uiMove(which,id,dir){
 const a=which==='menu'?uiMenuOrder:uiBarOrder, i=a.indexOf(id), j=i+dir; if(i<0||j<0||j>=a.length) return;
-a[i]=a[j]; a[j]=id; setPut(which==='menu'?'uiMenuOrder':'uiBarOrder2',a.slice()); uiApplyOrder();
+a[i]=a[j]; a[j]=id; setPut(which==='menu'?'uiMenuOrder':'uiBarOrder3',a.slice()); uiApplyOrder();
 }
 function uiLabel(which,id){ if(which==='bar'){ const b=UI_BAR.find(q=>q[0]===id); return b?b[1]:id; } const el=document.getElementById(id); return el?(el.textContent||id).replace(/\s+/g,' ').replace(/:.*$/,'').trim():id; }
-function uiReset(){ uiMenuOrder=UI_MENU_IDS.slice(); uiBarOrder=UI_BAR_IDS.slice(); setPut('uiMenuOrder',uiMenuOrder.slice()); setPut('uiBarOrder2',uiBarOrder.slice()); uiSize={...UI_DEF}; uiHide={}; setPut('uiD',UI_DEF.d); setPut('uiIco',UI_DEF.ico); setPut('uiHud',UI_DEF.hud); setPut('uiHide',{}); uiApply(); uiApplyOrder(); }
+function uiReset(){ uiMenuOrder=UI_MENU_IDS.slice(); uiBarOrder=UI_BAR_IDS.slice(); setPut('uiMenuOrder',uiMenuOrder.slice()); setPut('uiBarOrder3',uiBarOrder.slice()); uiSize={...UI_DEF}; uiHide={}; setPut('uiD',UI_DEF.d); setPut('uiIco',UI_DEF.ico); setPut('uiHud',UI_DEF.hud); setPut('uiHide',{}); uiApply(); uiApplyOrder(); }
 uiApply();
 uiApplyOrder();
 
@@ -8390,7 +8389,7 @@ const CHANGELOG=[
 ,
 ["0.5.60","2026-10-07",["Neu: Erde saugt Wasser auf: direkt am Wasser wird nur eine dünne Haut zu Matsch (neue Element-Editor-Zeile „Saugt Wasser auf“)","Neu: Begrabenes Gras, Blumen, Laub, Nadeln, Efeu und Brösel wird mit der Zeit zu Erde","Neu: Schmelzpunkte realistisch (Eisen 1538, Gold 1064, Silber 962, Stein 1215, Basalt 1200, Sand/Quarz ca. 1700, Glas 1400), Lava 1150 °C, Explosionen 1800 °C","Neu: Meteoreisen schmilzt (1450 °C) und wird danach wieder hart","Neu: Temperatur-Werkzeug bis 3500 °C","Neu: Schmelzen kühlen im Wasser etwa 30 % schneller","Neu: Meteor schleudert beim Einschlag deutlich mehr Material weg","Neu: Windschutz in Höhlen (unter einer Decke weht kein Wind)","Neu: Tropfsteine beginnen verzögert, nicht in engen Rissen (dort langsam Kalkstein-Decke), Sickerwasser reicht tiefer ins Erdreich","Fix: Abgekühlte Lava erstarrt auf Gras und Erde (vorher blieb sie als weiße Lücken stehen)"]]
 ,
-["0.5.61","2026-10-07",["Neu: Werkzeugkasten: Reiter Element | Pinsel | Radierer in allen drei Fenstern, die Element-Anzeige öffnet den Element-Reiter","Neu: Element-Reiter mit Suchfeld und „Zuletzt benutzt“","Neu: Radierer grob nach Alles, Fest, Pulver, Flüssig oder Gase; die genaue Elementauswahl steht unter „Erweiterte Radierer-Einstellungen“","Neu: Hinweis unten links im Spielfeld, was der Radierer gerade löscht","Neu: Neue Leiste von links: Mülleimer, Pause, Element-Anzeige, Radiergummi, Werkzeugkasten (🛠️)","Neu: Einstellungen (⚙️) sitzt oben links über dem Editor-Knopf","Fix: Der Radiergummi-Knopf schaltet nur noch an/aus, das Filter-Fenster öffnet sich nicht mehr von selbst"]]
+["0.5.61","2026-10-07",["Neu: Werkzeugkasten: Reiter Element | Pinsel | Radierer in allen drei Fenstern, die Element-Anzeige öffnet den Element-Reiter","Neu: Element-Reiter mit Suchfeld und „Zuletzt benutzt“","Neu: Radierer grob nach Alles, Fest, Pulver, Flüssig oder Gase; die genaue Elementauswahl steht unter „Erweiterte Radierer-Einstellungen“","Neu: Hinweis unten links im Spielfeld, was der Radierer gerade löscht","Neu: Neue Leiste von links: Mülleimer, Pause, Element-Anzeige, Radiergummi, Werkzeugkasten (🧰, öffnet den Pinsel-Reiter)","Neu: Das Hammer-Menü (🛠️) sitzt oben links im Spielfeld über dem Editor-Knopf und klappt nach unten auf","Fix: Der Radiergummi-Knopf schaltet nur noch an/aus, das Filter-Fenster öffnet sich nicht mehr von selbst"]]
 ];
 function chGroups(){
 const map=new Map();
@@ -11735,6 +11734,7 @@ const show=!!eraserActive && eraseCat!=='all'; c.style.display=show?'block':'non
 kitBuildTabs(); kitBuildFind();
 { const adv=$k('eraseAdvBtn'); if(adv) adv.onclick=()=>{ const a=$k('eraseAdv'); const open=a.style.display==='none'; a.style.display=open?'flex':'none'; adv.textContent='⚙ Erweiterte Radierer-Einstellungen '+(open?'▾':'▸'); }; }
 kitEraseBuild();
+{ const b=$k('btnKit'); if(b) b.addEventListener('click',()=>kitOpen('brush')); }
 
 const SEARCH_TABS=['allgemein','anzeige','leistung'];
 let searchBox=null, searchRes=null, searchIn=null, searchT=null;
