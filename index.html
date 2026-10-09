@@ -8646,7 +8646,7 @@ const CHANGELOG=[
 ["0.5.87","2026-10-09",["Neu: Versteinern: Trifft ein Tropfen aus der Höhlendecke Holz, Laub oder Nadeln, wird der ganze Baum (auch Büsche) zu festen Pixeln, zählt nicht mehr als Baum-Objekt und wird von oben nach unten Zelle für Zelle zu Tropfstein","Neu: Element-Editor: Haken „Versteinert durch Tropfen“ (gilt für Holz, Laub, Nadeln und für neue Elemente); Dev-Regler für Tempo, Größe und Abschalten"]],
 ["0.5.88","2026-10-09",["Neu: Tropfen aus der Höhlendecke wirken je nach Pulver: Sand, Kies, Basalt- und Tropfstein-Pulver und Holzsplitter werden fester Stein, Asche, Rost und Eisenoxid bilden eine Stein-Kruste, Laub, Nadeln, Brösel und Samen verwesen zu Erde, Salz löst sich auf, alles andere bleibt","Neu: Element-Editor: Zeile „Wenn Tropfstein darauf tropft“ für jedes Pulver (auch neue)"]],
 ["0.5.89","2026-10-09",["Neu: Höhlenpaket Teil 1: Hängewurzeln wachsen langsam aus der Höhlendecke (Stein, Sandstein), wenn Erde oder Pflanzen darüber liegen; ohne Halt verwelken sie","Neu: Element-Editor: „Wächst aus diesem Element (Höhle)“ mit Richtung, Bedingung, Chance und Länge (auch für Kristalle und Pilze später); Dev-Regler Höhlenwachstum"]],
-["0.5.90","2026-10-09",["Neu: Höhlenpaket komplett: Bergkristall wächst sehr langsam seitlich aus Stein, Leuchtpilze wachsen leuchtend auf feuchtem Höhlenboden (Wasser oder Tropfstein in der Nähe, Decke darüber)","Neu: Sandstein sickert: Wasser von oben tropft als echtes Wasser aus der Decke (die Menge oben nimmt ab) und kann sich sammeln","Neu: Fledermaus hängt kopfüber an der Höhlendecke, wacht bei Störung auf, flattert und hängt sich wieder auf","Neu: Element-Editor: Zeilen „Von der Decke / Vom Boden / Aus der Wand wächst“ (je mit Bedingung, Chance, Länge) und „Sickerwasser: Rate“","Neu: Dev-Regler Sickerwasser und Fledermaus"]]
+["0.5.90","2026-10-09",["Neu: Höhlenpaket komplett: Bergkristall wächst sehr langsam seitlich aus Stein, Leuchtpilze wachsen leuchtend auf feuchtem Höhlenboden (Wasser oder Tropfstein in der Nähe, Decke darüber)","Neu: Sandstein sickert: Wasser von oben tropft als echtes Wasser aus der Decke (die Menge oben nimmt ab) und kann sich sammeln","Neu: Fledermaus hängt kopfüber an der Höhlendecke, wacht bei Störung auf, flattert und hängt sich wieder auf","Neu: Element-Editor: Zeilen „Von der Decke / Vom Boden / Aus der Wand wächst“ (je mit Bedingung, Chance, Länge) und „Sickerwasser: Rate“","Neu: Dev-Regler Sickerwasser und Fledermaus","Fix: Versteinern deutlich langsamer (Standard 0,005, Regler bis 0,001)","Fix: Der Hauptschalter und das Tempo „Höhlenwachstum“ steuern jetzt alles: Tropfsteine, Versteinern, Tropfstein auf Pulver, Wurzeln, Kristalle, Pilze, Sickerwasser"]]
 ];
 function chGroups(){
 const map=new Map();
@@ -11090,10 +11090,11 @@ if(g===T.WALL || g===T.WALL_HARD || g===T.BASALT || g===TROPF_ID || g===SANDSTON
 if(PETRI_TYPE[g]) return 'tree';
 return '';
 }
-let PETRI_ON=1, PETRI_RATE=0.5, PETRI_MAXC=4000;
+let PETRI_ON=1, PETRI_RATE=0.005, PETRI_MAXC=4000;
 PETRI_TYPE[T.WOOD]=true; for(const id of [LEAF_ID,NEEDLE_ID]){ const m=MATERIALS.find(q=>q.id===id); if(m && m.def){ m.def.petri=true; applyDef(id,m.def); } PETRI_TYPE[id]=true; }
 const petriQ=[], petriSet=new Set();
 function petriStart(j0){
+if(!CG_ON || (CG_RATE<1 && dripRnd()>=CG_RATE)) return;
 if(!PETRI_ON || !PETRI_TYPE[grid[j0]] || bodyGrid[j0] || petriSet.has(j0)) return false;
 if(typeof fallingTrees!=='undefined' && fallingTrees.some(f=>f.occ && f.occ.has(j0))) return false;
 const W=gridW, seen=new Set([j0]), q=[j0], comp=[];
@@ -11106,7 +11107,8 @@ petriQ.push({cells:keyed.map(k=>k[1]),i:0,acc:0});
 return true;
 }
 function stepPetri(){
-for(let n=petriQ.length-1;n>=0;n--){ const p=petriQ[n]; p.acc+=PETRI_RATE;
+if(!CG_ON) return;
+for(let n=petriQ.length-1;n>=0;n--){ const p=petriQ[n]; p.acc+=PETRI_RATE*CG_RATE;
 while(p.acc>=1 && p.i<p.cells.length){ const c=p.cells[p.i++]; petriSet.delete(c); p.acc-=1; if(!PETRI_TYPE[grid[c]] || bodyGrid[c]) continue;
 grid[c]=TROPF_ID; variant[c]=16|((dripRnd()*4)|0); life[c]=0; vel[c]=0; updated[c]=UT; expandBBox(c%gridW,(c/gridW)|0); }
 if(p.i>=p.cells.length){ petriQ.splice(n,1); } }
@@ -11118,6 +11120,7 @@ function petriLoadList(d){ petriQ.length=0; petriSet.clear(); if(!Array.isArray(
 { const o=worldFromJson; worldFromJson=function(txt){ const r=o.apply(this,arguments); if(r===null){ let d=null; try{ d=JSON.parse(txt).petri; }catch(e){} petriLoadList(d); } return r; }; }
 function dripSetCell(j,id){ const W=gridW; grid[j]=id; life[j]=0; vel[j]=0; variant[j]=(dripRnd()*4)|0; updated[j]=UT; expandBBox(j%W,(j/W)|0); }
 function powderDrop(j,mode){
+if(!CG_ON || (CG_RATE<1 && dripRnd()>=CG_RATE)) return false;
 if(!DRIP_SAND_STONE || bodyGrid[j] || !mode || mode==='none') return false;
 const W=gridW, x=j%W, y=(j/W)|0;
 if(mode==='solid'){ dripSetCell(j,T.WALL); return true; }
@@ -11159,7 +11162,7 @@ for(const sx of sides) for(let r=0;r<rows;r++){ const yy=y0+dir*r; if(!inb(sx,yy
 function dripCrowded(x,y){ let n=0; for(let dx=-12;dx<=12;dx++){ if(inb(x+dx,y) && grid[y*gridW+x+dx]===TROPF_ID) n++; } return n>=DRIP_DENS; }
 function stepDrip(){
 stepDripDrops(); stepPetri();
-if(DRIP_SAMPLES<=0 || activeCount<=0) return;
+if(DRIP_SAMPLES<=0 || activeCount<=0 || !CG_ON) return;
 const W=gridW, N=grid.length;
 for(let s=0;s<DRIP_SAMPLES;s++){
 const i=(dripRnd()*N)|0, t=grid[i]; if(t===T.EMPTY) continue;
@@ -11172,8 +11175,8 @@ if(grid[i+W]!==T.EMPTY) continue;
 const dr=DRIP[upG]; if(!dr || !dripSolid(upG)) continue;
 if(up.len+dripFreeRun(i,DRIP_CRACK_H)<DRIP_CRACK_H) continue;
 const wet=dripWet(up.top,dr.range); if(!wet) continue;
-if(dripRnd()<DRIP_DROP*DRIP_RATE) dripSpawnDrop(x,y+1);
-if(dripRnd()>=Math.min(1,dr.p*DRIP_RATE*DRIP_GROW*2*dripSpeed(up.top%W))) continue;
+if(dripRnd()<DRIP_DROP*DRIP_RATE*CG_RATE) dripSpawnDrop(x,y+1);
+if(dripRnd()>=Math.min(1,dr.p*DRIP_RATE*CG_RATE*DRIP_GROW*2*dripSpeed(up.top%W))) continue;
 if(up.len<dripMaxLen(up.top%W,dr.max) && inb(x,y+1) && grid[(y+1)*W+x-1]!==TROPF_ID && grid[(y+1)*W+x+1]!==TROPF_ID && dripRnd()<0.6){ if(dripPut(x,y+1,dr.to)){ dripSpawnDrop(x,y+2); dripWiden(x,((up.top/W)|0)+1,1,up.len+1,dr); } continue; }
 if(dr.up){
 let f=y+2; while(f<gridH && f<y+80 && grid[f*W+x]===T.EMPTY) f++;
@@ -11190,7 +11193,7 @@ continue;
 }
 const dr=DRIP[t]; if(!dr) continue;
 if(grid[i+W]!==T.EMPTY || bodyGrid[i+W] || bodyGrid[i]) continue;
-if(dripRnd()>=Math.min(1,dr.p*DRIP_RATE)) continue;
+if(dripRnd()>=Math.min(1,dr.p*DRIP_RATE*CG_RATE)) continue;
 if(!dripWet(i,dr.range)) continue;
 const free=dripFreeRun(i,DRIP_CRACK_H);
 if(free<DRIP_CRACK_H){
@@ -11204,7 +11207,7 @@ dripSeen.delete(i); dripPut(x,y+1,dr.to);
 }
 TUNABLES.push(
 tn('Höhlen','Versteinern von Bäumen (1 = an)',0,1,1,()=>PETRI_ON,v=>{ PETRI_ON=v>0?1:0; }),
-tn('Höhlen','Versteinern: Zellen je Tick und Baum',0.05,5,0.05,()=>PETRI_RATE,v=>{ PETRI_RATE=v; }),
+tn('Höhlen','Versteinern: Zellen je Tick und Baum',0.001,5,0.001,()=>PETRI_RATE,v=>{ PETRI_RATE=v; }),
 tn('Höhlen','Versteinern: größte Baumgröße (Zellen)',100,20000,100,()=>PETRI_MAXC,v=>{ PETRI_MAXC=Math.round(v); }),
 tn('Höhlen','Tropfstein auf Pulver: wirkt (1 = an)',0,1,1,()=>DRIP_SAND_STONE,v=>{ DRIP_SAND_STONE=v>0?1:0; }),
 tn('Höhlen','Tropfsteine: Prüfungen pro Tick',0,5000,100,()=>DRIP_SAMPLES,v=>{ DRIP_SAMPLES=Math.round(v); }),
@@ -12989,7 +12992,7 @@ function cgPut(x,y,id,lf){ if(!inb(x,y)) return false; const j=y*gridW+x; if(gri
 function cgFree(g){ return g===T.EMPTY || g===T.SMOKE || g===T.STEAM || g===T.FIRE || isSwappableFluid(g); }
 function cgSeep(i,x,y){
 const W=gridW, o=i+W, sp=SEEP[grid[i]]; if(!sp || grid[o]!==T.EMPTY || bodyGrid[o]) return;
-if(dripRnd()>=Math.min(1,sp.p*CG_SEEP)) return;
+if(dripRnd()>=Math.min(1,sp.p*CG_SEEP*CG_RATE)) return;
 const t=grid[i];
 for(let k=1;k<=CG_SEEP_REACH;k++){ const j=i-W*k; if(j<0) return; const g=grid[j];
 if(g===T.WATER){ grid[j]=T.EMPTY; life[j]=0; vel[j]=0; variant[j]=0; updated[j]=UT; if(activeCount>0) activeCount--; if(cgPut(x,y+1,T.WATER,0)){ variant[o]=0; } else { grid[j]=T.WATER; activeCount++; } return; }
@@ -13050,9 +13053,9 @@ tn('Höhlen','Sickerwasser: Tempo (×)',0,20,0.25,()=>CG_SEEP,v=>{ CG_SEEP=v; })
 tn('Höhlen','Sickerwasser: Reichweite nach oben (Zellen)',1,40,1,()=>CG_SEEP_REACH,v=>{ CG_SEEP_REACH=Math.round(v); })
 );
 Object.assign(INFO,{
-'Höhlenwachstum (1 = an)':'Schaltet das Herauswachsen von Elementen aus Wirten wie Stein ab (hängende Wurzeln, später Kristalle und Pilze). Aus = nichts wächst mehr, vorhandene bleiben.',
+'Höhlenwachstum (1 = an)':'Hauptschalter für JEDES Wachstum in Höhlen: Tropfsteine, Versteinern von Bäumen, Tropfstein auf Pulver (Kruste, Verfestigen, Verwesen), hängende Wurzeln, Kristalle, Leuchtpilze und Sickerwasser. Aus = nichts davon ändert sich mehr, Vorhandenes bleibt.',
 'Höhlenwachstum: Prüfungen pro Tick':'Wie viele zufällige Zellen pro Schritt geprüft werden. Mehr = schnelleres Wachstum, aber mehr Rechenzeit.',
-'Höhlenwachstum: Tempo (×)':'Vielfaches der Wachstums-Chancen aller Wirte. 1 = Standard.',
+'Höhlenwachstum: Tempo (×)':'Gemeinsames Tempo für alles Höhlenwachstum (Tropfsteine, Versteinern, Kruste/Verfestigen, Wurzeln, Kristalle, Pilze, Sickerwasser). 1 = Standard, höher = schneller prüfen. Wird mit den Einzel-Tempi multipliziert.',
 'Höhlenwachstum: Wartezeit nach dem Öffnen (Ticks)':'Ein frisch geöffneter Hohlraum bekommt erst nach dieser Zeit die ersten Triebe (60 Ticks = etwa 1 Sekunde).',
 'Höhlenwachstum: höchstens so viele je 25 Spalten':'Obergrenze für gleichartige Gewächse nebeneinander, damit keine Wiese entsteht.',
 'Höhlenwachstum: Mindestabstand (Spalten)':'So viele Spalten Abstand halten neue Triebe mindestens zu gleichen Gewächsen.',
