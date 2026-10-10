@@ -9633,7 +9633,7 @@ let TREE_GROW_ON=1, TREE_GROW_T=300, TREE_GROW_STAGES=12, TREE_GROW_F0=0.15, TRE
 const growingTrees=[];
 function plantTree(x,y,kind,force,gs){
 if(y+1>=gridH || !inb(x,y)) return false;
-if(!force && grid[(y+1)*gridW+x]!==ERDE_ID) return false;
+if(!force && !gs && grid[(y+1)*gridW+x]!==ERDE_ID) return false;
 const first=!gs; let startGrow=false, full=null;
 if(first && kind==='needle' && TREE_GROW_ON && (!force || TREE_GROW_TOOL)){ startGrow=true; gs={seed:natS,f:TREE_GROW_F0}; }
 let pat;
