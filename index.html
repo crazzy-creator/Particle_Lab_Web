@@ -3840,6 +3840,7 @@ return out;
 function handGroupMove(p, tx, ty){
 const list=p.grab, W=gridW, sx=Math.sign(tx), sy=Math.sign(ty), key=sx*3+sy;
 if(p.sortKey!==key){ list.sort((a,b)=> ((b%W)*sx + ((b/W)|0)*sy) - ((a%W)*sx + ((a/W)|0)*sy)); p.sortKey=key; }
+if(!hmk || hmk.length!==grid.length) hmk=new Uint8Array(grid.length);
 for(let n=0;n<list.length;n++) hmk[list[n]]=0;
 for(let n=0;n<list.length;n++){
 const i=list[n], x=i%W, y=(i/W)|0;
